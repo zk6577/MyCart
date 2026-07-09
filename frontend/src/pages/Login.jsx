@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import axios from 'axios'
-import { signInWithPopup } from 'firebase/auth'
+import { getRedirectResult, signInWithRedirect } from 'firebase/auth'
 import toast from 'react-hot-toast'
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'
 import { useNavigate } from 'react-router-dom'
@@ -18,6 +18,44 @@ function Login() {
   const navigate = useNavigate()
   const { serverUrl } = useContext(authDataContex)
   const { getCurrentUser } = useContext(userDataContex)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const completeGoogleLogin = async () => {
+      try {
+        const response = await getRedirectResult(auth)
+
+        if (!response?.user) {
+          return
+        }
+
+        const user = response.user
+        await axios.post(
+          `${serverUrl}/api/auth/googlelogin`,
+          { name: user.displayName, email: user.email },
+          { withCredentials: true }
+        )
+
+        if (!isMounted) {
+          return
+        }
+
+        await getCurrentUser()
+        navigate('/')
+        toast.success('Login successfully')
+      } catch (error) {
+        console.log('Google login redirect error', error)
+        toast.error(error.response?.data?.message || 'Google login failed')
+      }
+    }
+
+    completeGoogleLogin()
+
+    return () => {
+      isMounted = false
+    }
+  }, [getCurrentUser, navigate, serverUrl])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -47,16 +85,7 @@ function Login() {
 
   const googleLogin = async () => {
     try {
-      const response = await signInWithPopup(auth, provider)
-      const user = response.user
-      await axios.post(
-        `${serverUrl}/api/auth/googlelogin`,
-        { name: user.displayName, email: user.email },
-        { withCredentials: true }
-      )
-      getCurrentUser()
-      navigate('/')
-      toast.success('Login successfully')
+      await signInWithRedirect(auth, provider)
     } catch (error) {
       console.log('Login error', error)
       toast.error(error.response?.data?.message || 'Login failed')
@@ -94,6 +123,7 @@ function Login() {
             <button
               type='button'
               onClick={googleLogin}
+              disabled={loading}
               className='w-full min-h-[48px] rounded-[8px] border border-black/10 bg-white flex items-center justify-center gap-3 font-bold hover:bg-[#f1f6f6] transition-colors'
             >
               <img className='w-[24px] h-[24px] rounded-full' src={Google} alt='Google icon' />

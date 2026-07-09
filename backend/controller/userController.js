@@ -1,10 +1,23 @@
+import jwt from "jsonwebtoken"
 import User from "../model/userModel.js"
 
 
 
 export const getCurrentUser= async (req,res)=>{
     try {
-        let user= await User.findById(req.userId).select("-password");
+        const userToken = req.cookies.userToken;
+
+        if(!userToken){
+            return res.status(200).json(null);
+        }
+
+        const verifyToken = jwt.verify(userToken, process.env.JWT_SECRET);
+
+        if(!verifyToken.userId){
+            return res.status(200).json(null);
+        }
+
+        let user= await User.findById(verifyToken.userId).select("-password");
 
         if(!user){
             return res.status(404).json({message:"User is not found"});
