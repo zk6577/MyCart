@@ -25,9 +25,6 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 
-app.use(express.json());
-app.use(cookieParser());
-
 
 app.use(cors({
   origin(origin, callback) {
@@ -39,6 +36,11 @@ app.use(cors({
   },
   credentials:true
 }));
+
+
+app.use(express.json());
+app.use(cookieParser());
+
 app.use("/api/auth",authRoutes);
 app.use("/api/user",userRoutes);
 app.use("/api/product",productRoutes);
