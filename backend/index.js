@@ -17,18 +17,29 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 
 const port = process.env.PORT || 5000;
 const app = express();
-const allowedOrigins = [
+
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/$/, "");
+const parseOrigins = (...origins) =>
+  origins
+    .flatMap((origin) => origin?.split(",") || [])
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+const allowedOrigins = parseOrigins(
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
+  process.env.CORS_ORIGINS,
   "http://localhost:5173",
-  "http://localhost:5174",
-].filter(Boolean);
+  "http://localhost:5174"
+);
 
 
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const requestOrigin = normalizeOrigin(origin);
+
+    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
       return callback(null, true);
     }
 
