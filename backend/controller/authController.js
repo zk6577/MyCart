@@ -26,6 +26,40 @@ const clearCookieOptions = {
   ...baseCookieOptions,
 };
 
+const partitionedUserCookieOptions = {
+  ...userCookieOptions,
+  path: "/",
+  partitioned: true,
+};
+
+const partitionedAdminCookieOptions = {
+  ...adminCookieOptions,
+  path: "/",
+  partitioned: true,
+};
+
+const partitionedClearCookieOptions = {
+  ...clearCookieOptions,
+  path: "/",
+  partitioned: true,
+};
+
+const setUserAuthCookies = (res, token) => {
+  res.cookie("userToken", token, userCookieOptions);
+
+  if (isProduction) {
+    res.cookie("__Host-userTokenPartitioned", token, partitionedUserCookieOptions);
+  }
+};
+
+const setAdminAuthCookies = (res, token) => {
+  res.cookie("adminToken", token, adminCookieOptions);
+
+  if (isProduction) {
+    res.cookie("__Host-adminTokenPartitioned", token, partitionedAdminCookieOptions);
+  }
+};
+
 const getUserData = (user) => ({
   _id: user._id,
   name: user.name,
@@ -69,7 +103,7 @@ const getUserData = (user) => ({
 
        const userToken = await genToken(user._id);
    
-        res.cookie("userToken", userToken, userCookieOptions)
+        setUserAuthCookies(res, userToken)
    
     return res.status(201).json({ user: getUserData(user) });
        
@@ -114,7 +148,7 @@ if(!isMatch){
 
        const userToken = await genToken(user._id);
    
-        res.cookie("userToken", userToken, userCookieOptions)
+        setUserAuthCookies(res, userToken)
  return res.status(200).json({ user: getUserData(user) });
 
 
@@ -131,6 +165,9 @@ return res.status(500).json({message:`Login error ${error}`})
  export const logOut= async (req,res)=>{
   try {
     res.clearCookie("userToken", clearCookieOptions);
+    if (isProduction) {
+      res.clearCookie("__Host-userTokenPartitioned", partitionedClearCookieOptions);
+    }
     return res.status(200).json({message:"Logout Suceessfully"})
   } catch (error) {
        console.log("logout error");
@@ -145,6 +182,9 @@ return res.status(500).json({message:`logout error ${error}`})
  export const adminLogOut= async (req,res)=>{
   try {
     res.clearCookie("adminToken", clearCookieOptions);
+    if (isProduction) {
+      res.clearCookie("__Host-adminTokenPartitioned", partitionedClearCookieOptions);
+    }
     return res.status(200).json({message:"Admin Logout Suceessfully"})
   } catch (error) {
        console.log("admin logout error");
@@ -181,7 +221,7 @@ return res.status(500).json({message:`Admin logout error ${error}`})
 
        const userToken = await genToken(user._id);
    
-        res.cookie("userToken", userToken, userCookieOptions)
+        setUserAuthCookies(res, userToken)
  return res.status(200).json({ user: getUserData(user) });
 
 
@@ -204,7 +244,7 @@ return res.status(500).json({message:`Admin Login error ${error}`})
        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
         const adminToken = await genToken1(email);
    
-        res.cookie("adminToken", adminToken, adminCookieOptions)
+        setAdminAuthCookies(res, adminToken)
  return res.status(200).json(adminToken);
 
       

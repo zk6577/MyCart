@@ -5,7 +5,7 @@ import User from "../model/userModel.js"
 
 export const getCurrentUser= async (req,res)=>{
     try {
-        const userToken = req.cookies.userToken;
+        const userToken = req.cookies["__Host-userTokenPartitioned"] || req.cookies.userToken;
 
         if(!userToken){
             return res.status(200).json(null);

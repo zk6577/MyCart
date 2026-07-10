@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 try {
     
-const adminToken= req.cookies.adminToken;
+const adminToken = req.cookies["__Host-adminTokenPartitioned"] || req.cookies.adminToken;
 
  if(!adminToken){
     return res.status(401).json({message:"Unauthorized: No token provided"})

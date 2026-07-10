@@ -34,12 +34,15 @@ function Login() {
         { email, password },
         { withCredentials: true }
       )
+      const currentUser = await getCurrentUser()
+      if (!currentUser) {
+        throw new Error('The browser blocked the login session. Please reload and try again.')
+      }
       toast.success('Login successfully')
-      getCurrentUser()
       navigate('/')
     } catch (error) {
       console.log('Login Error', error)
-      toast.error(error.response?.data?.message || 'Login failed')
+      toast.error(error.response?.data?.message || error.message || 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -57,7 +60,10 @@ function Login() {
         { withCredentials: true }
       )
 
-      await getCurrentUser()
+      const currentUser = await getCurrentUser()
+      if (!currentUser) {
+        throw new Error('The browser blocked the login session. Please reload and try again.')
+      }
       toast.success('Login successfully')
       navigate('/')
     } catch (error) {

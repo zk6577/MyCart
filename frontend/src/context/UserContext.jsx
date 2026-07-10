@@ -13,12 +13,14 @@ const [loading,setLoading]=useState(true)
            const result=await axios.get(`${serverUrl}/api/user/getcurrentuser`,{withCredentials:true});
            
           setUserData(result.data);
+          return result.data;
            
       } catch (error) {
         setUserData(null);
         if (error.response?.status !== 401) {
           console.log("Error in getcurrentuser",error);
         }
+        return null;
         
       }
       finally{

@@ -30,12 +30,15 @@ function Register() {
         { name, email, password },
         { withCredentials: true }
       )
+      const currentUser = await getCurrentUser()
+      if (!currentUser) {
+        throw new Error('The browser blocked the login session. Please reload and try again.')
+      }
       toast.success('Account created')
-      getCurrentUser()
       navigate('/')
     } catch (error) {
       console.log('Signup error', error)
-      toast.error(error.response?.data?.message || 'Signup failed')
+      toast.error(error.response?.data?.message || error.message || 'Signup failed')
     } finally {
       setLoading(false)
     }
@@ -53,7 +56,10 @@ function Register() {
         { withCredentials: true }
       )
 
-      await getCurrentUser()
+      const currentUser = await getCurrentUser()
+      if (!currentUser) {
+        throw new Error('The browser blocked the login session. Please reload and try again.')
+      }
       toast.success('Account created')
       navigate('/')
     } catch (error) {

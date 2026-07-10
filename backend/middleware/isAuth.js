@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
  const isAuth= async(req,res,next)=>{
 
  try {
-const userToken = req.cookies.userToken;
+const userToken = req.cookies["__Host-userTokenPartitioned"] || req.cookies.userToken;
 
     if(!userToken){
         return res.status(401).json({message:"User does not have token"});
