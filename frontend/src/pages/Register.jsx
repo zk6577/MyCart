@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import axios from 'axios'
-import { getRedirectResult, signInWithRedirect } from 'firebase/auth'
+import { signInWithPopup } from 'firebase/auth'
 import toast from 'react-hot-toast'
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'
 import { useNavigate } from 'react-router-dom'
@@ -19,44 +19,6 @@ function Register() {
   const { serverUrl } = useContext(authDataContex)
   const { getCurrentUser } = useContext(userDataContex)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    let isMounted = true
-
-    const completeGoogleSignup = async () => {
-      try {
-        const response = await getRedirectResult(auth)
-
-        if (!response?.user) {
-          return
-        }
-
-        const user = response.user
-        await axios.post(
-          `${serverUrl}/api/auth/googlelogin`,
-          { name: user.displayName, email: user.email },
-          { withCredentials: true }
-        )
-
-        if (!isMounted) {
-          return
-        }
-
-        await getCurrentUser()
-        navigate('/')
-        toast.success('Account created')
-      } catch (error) {
-        console.log('Google signup redirect error', error)
-        toast.error(error.response?.data?.message || 'Google signup failed')
-      }
-    }
-
-    completeGoogleSignup()
-
-    return () => {
-      isMounted = false
-    }
-  }, [getCurrentUser, navigate, serverUrl])
 
   const handleSignup = async (e) => {
     e.preventDefault()
@@ -81,10 +43,24 @@ function Register() {
 
   const googleSignup = async () => {
     try {
-      await signInWithRedirect(auth, provider)
+      setLoading(true)
+      const response = await signInWithPopup(auth, provider)
+      const user = response.user
+
+      await axios.post(
+        `${serverUrl}/api/auth/googlelogin`,
+        { name: user.displayName, email: user.email },
+        { withCredentials: true }
+      )
+
+      await getCurrentUser()
+      toast.success('Account created')
+      navigate('/')
     } catch (error) {
-      console.log('Signup error', error)
-      toast.error(error.response?.data?.message || 'Signup failed')
+      console.log('Google signup error', error)
+      toast.error(error.response?.data?.message || error.message || 'Google signup failed')
+    } finally {
+      setLoading(false)
     }
   }
 

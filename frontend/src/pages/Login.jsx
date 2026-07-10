@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import axios from 'axios'
-import { getRedirectResult, signInWithRedirect } from 'firebase/auth'
+import { signInWithPopup } from 'firebase/auth'
 import toast from 'react-hot-toast'
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'
 import { useNavigate } from 'react-router-dom'
@@ -18,44 +18,6 @@ function Login() {
   const navigate = useNavigate()
   const { serverUrl } = useContext(authDataContex)
   const { getCurrentUser } = useContext(userDataContex)
-
-  useEffect(() => {
-    let isMounted = true
-
-    const completeGoogleLogin = async () => {
-      try {
-        const response = await getRedirectResult(auth)
-
-        if (!response?.user) {
-          return
-        }
-
-        const user = response.user
-        await axios.post(
-          `${serverUrl}/api/auth/googlelogin`,
-          { name: user.displayName, email: user.email },
-          { withCredentials: true }
-        )
-
-        if (!isMounted) {
-          return
-        }
-
-        await getCurrentUser()
-        navigate('/')
-        toast.success('Login successfully')
-      } catch (error) {
-        console.log('Google login redirect error', error)
-        toast.error(error.response?.data?.message || 'Google login failed')
-      }
-    }
-
-    completeGoogleLogin()
-
-    return () => {
-      isMounted = false
-    }
-  }, [getCurrentUser, navigate, serverUrl])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -85,10 +47,24 @@ function Login() {
 
   const googleLogin = async () => {
     try {
-      await signInWithRedirect(auth, provider)
+      setLoading(true)
+      const response = await signInWithPopup(auth, provider)
+      const user = response.user
+
+      await axios.post(
+        `${serverUrl}/api/auth/googlelogin`,
+        { name: user.displayName, email: user.email },
+        { withCredentials: true }
+      )
+
+      await getCurrentUser()
+      toast.success('Login successfully')
+      navigate('/')
     } catch (error) {
-      console.log('Login error', error)
-      toast.error(error.response?.data?.message || 'Login failed')
+      console.log('Google login error', error)
+      toast.error(error.response?.data?.message || error.message || 'Google login failed')
+    } finally {
+      setLoading(false)
     }
   }
 
