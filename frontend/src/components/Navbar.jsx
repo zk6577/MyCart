@@ -11,6 +11,7 @@ import logo from '../assets/logo.png'
 import { authDataContex } from '../context/authDataContext'
 import { cartDataContext } from '../context/cartDataContext'
 import { userDataContex } from '../context/userDataContext'
+import { clearAuthToken } from '../utils/authToken'
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -39,7 +40,8 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await axios.get(`${serverUrl}/api/auth/logout`, { withCredentials: true })
-      getCurrentUser()
+      clearAuthToken()
+      await getCurrentUser()
       navigate('/login')
       toast.success('Logged out successfully')
     } catch (error) {

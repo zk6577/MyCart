@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken"
 import User from "../model/userModel.js"
+import { getUserRequestToken } from "../config/requestToken.js"
 
 
 
 export const getCurrentUser= async (req,res)=>{
     try {
-        const userToken = req.cookies["__Host-userTokenPartitioned"] || req.cookies.userToken;
+        const userToken = getUserRequestToken(req);
 
         if(!userToken){
             return res.status(200).json(null);
@@ -29,7 +30,7 @@ export const getCurrentUser= async (req,res)=>{
         
     } catch (error) {
         console.log("Get current user error",error.message);
-        return res.status(500).json({message:"Error fetching user details"})
+        return res.status(401).json({message:"Invalid or expired login session"})
     }
 }
 

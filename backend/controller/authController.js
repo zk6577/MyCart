@@ -105,7 +105,7 @@ const getUserData = (user) => ({
    
         setUserAuthCookies(res, userToken)
    
-    return res.status(201).json({ user: getUserData(user) });
+    return res.status(201).json({ user: getUserData(user), token: userToken });
        
 
 
@@ -149,7 +149,7 @@ if(!isMatch){
        const userToken = await genToken(user._id);
    
         setUserAuthCookies(res, userToken)
- return res.status(200).json({ user: getUserData(user) });
+ return res.status(200).json({ user: getUserData(user), token: userToken });
 
 
 } catch (error) {
@@ -222,7 +222,7 @@ return res.status(500).json({message:`Admin logout error ${error}`})
        const userToken = await genToken(user._id);
    
         setUserAuthCookies(res, userToken)
- return res.status(200).json({ user: getUserData(user) });
+ return res.status(200).json({ user: getUserData(user), token: userToken });
 
 
 } catch (error) {

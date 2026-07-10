@@ -9,6 +9,7 @@ import logo from '../assets/logo.png'
 import { auth, provider } from '../../utils/Firebase'
 import { authDataContex } from '../context/authDataContext'
 import { userDataContex } from '../context/userDataContext'
+import { clearAuthToken, setAuthToken } from '../utils/authToken'
 
 function Login() {
   const [show, setShow] = useState(false)
@@ -29,11 +30,12 @@ function Login() {
 
     try {
       setLoading(true)
-      await axios.post(
+      const result = await axios.post(
         `${serverUrl}/api/auth/login`,
         { email, password },
         { withCredentials: true }
       )
+      setAuthToken(result.data?.token)
       const currentUser = await getCurrentUser()
       if (!currentUser) {
         throw new Error('The browser blocked the login session. Please reload and try again.')
@@ -41,6 +43,7 @@ function Login() {
       toast.success('Login successfully')
       navigate('/')
     } catch (error) {
+      clearAuthToken()
       console.log('Login Error', error)
       toast.error(error.response?.data?.message || error.message || 'Login failed')
     } finally {
@@ -54,11 +57,12 @@ function Login() {
       const response = await signInWithPopup(auth, provider)
       const user = response.user
 
-      await axios.post(
+      const loginResult = await axios.post(
         `${serverUrl}/api/auth/googlelogin`,
         { name: user.displayName, email: user.email },
         { withCredentials: true }
       )
+      setAuthToken(loginResult.data?.token)
 
       const currentUser = await getCurrentUser()
       if (!currentUser) {
@@ -67,6 +71,7 @@ function Login() {
       toast.success('Login successfully')
       navigate('/')
     } catch (error) {
+      clearAuthToken()
       console.log('Google login error', error)
       toast.error(error.response?.data?.message || error.message || 'Google login failed')
     } finally {

@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { authDataContex } from './authDataContext';
 import { userDataContex as UserDataContext } from './userDataContext';
 import axios from  "axios";
+import { clearAuthToken } from '../utils/authToken';
 
 function UserContext({children}) {
 const [userData,setUserData]= useState("");
@@ -17,6 +18,9 @@ const [loading,setLoading]=useState(true)
            
       } catch (error) {
         setUserData(null);
+        if (error.response?.status === 401) {
+          clearAuthToken();
+        }
         if (error.response?.status !== 401) {
           console.log("Error in getcurrentuser",error);
         }

@@ -9,6 +9,7 @@ import logo from '../assets/logo.png'
 import { auth, provider } from '../../utils/Firebase.js'
 import { authDataContex } from '../context/authDataContext'
 import { userDataContex } from '../context/userDataContext.js'
+import { clearAuthToken, setAuthToken } from '../utils/authToken'
 
 function Register() {
   const [show, setShow] = useState(false)
@@ -25,11 +26,12 @@ function Register() {
 
     try {
       setLoading(true)
-      await axios.post(
+      const result = await axios.post(
         `${serverUrl}/api/auth/register`,
         { name, email, password },
         { withCredentials: true }
       )
+      setAuthToken(result.data?.token)
       const currentUser = await getCurrentUser()
       if (!currentUser) {
         throw new Error('The browser blocked the login session. Please reload and try again.')
@@ -37,6 +39,7 @@ function Register() {
       toast.success('Account created')
       navigate('/')
     } catch (error) {
+      clearAuthToken()
       console.log('Signup error', error)
       toast.error(error.response?.data?.message || error.message || 'Signup failed')
     } finally {
@@ -50,11 +53,12 @@ function Register() {
       const response = await signInWithPopup(auth, provider)
       const user = response.user
 
-      await axios.post(
+      const loginResult = await axios.post(
         `${serverUrl}/api/auth/googlelogin`,
         { name: user.displayName, email: user.email },
         { withCredentials: true }
       )
+      setAuthToken(loginResult.data?.token)
 
       const currentUser = await getCurrentUser()
       if (!currentUser) {
@@ -63,6 +67,7 @@ function Register() {
       toast.success('Account created')
       navigate('/')
     } catch (error) {
+      clearAuthToken()
       console.log('Google signup error', error)
       toast.error(error.response?.data?.message || error.message || 'Google signup failed')
     } finally {
